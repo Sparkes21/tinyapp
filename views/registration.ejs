@@ -11,7 +11,10 @@
 <body>
   <%- include('partials/_header') %>
   <form method="POST" action="/register">
-    <input type="email" name="username"/>
+    <label for="email">Email:</label>
+    <input id="email" type="email" name="email"/>
+    <label for="password">Password:</label>
+    <input id="password" type="password" name="password"/>
     <button type="submit" class="btn btn-outline-primary"> Register </button>
   </form>
 </body>

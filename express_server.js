@@ -13,6 +13,19 @@ app.use(cookieParser());
 
 
 // Database
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -43,9 +56,6 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
 
 app.post("/urls", (req, res) => {
   const longUrl = req.body.longURL;
@@ -87,9 +97,21 @@ app.post("/logout", (req, res) => {
 app.get("/register", (req, res) => {
   const templateVars = { username: null }
   res.render("registration", templateVars);
-})
+});
+
+app.post("/register", (req, res) => {
+  const user_id = generateRandomString();
+  console.log("req.body", req.body);
+  users[user_id] = { user_id: user_id, email: req.body.email, password: req.body.password };
+  console.log("users[user_id]", users[user_id]);
+  res.cookie("user_id", user_id);
+  res.redirect("/urls");   
+});
 
 
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}!`);
+});
 
 function generateRandomString() {
   return Math.random().toString(36).slice(-6)
