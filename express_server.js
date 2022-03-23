@@ -102,11 +102,18 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const user_id = generateRandomString();
-  console.log("req.body", req.body);
-  users[user_id] = { user_id: user_id, email: req.body.email, password: req.body.password };
-  console.log("users[user_id]", users[user_id]);
-  res.cookie("user_id", user_id);
-  res.redirect("/urls");   
+  if (req.body.email === '' || req.body.password === '') {
+    res.status('400');
+    res.send('Email or password is incorrect');
+  } else if (emailTaken(users, req.body.email)) {
+    res.status('400');
+    res.send('Email already in use');
+  } else {
+    users[user_id] = { user_id: user_id, email: req.body.email, password: req.body.password };
+    res.cookie("user_id", user_id);
+    res.redirect("/urls");
+  }
+     
 });
 
 
@@ -116,6 +123,18 @@ app.listen(PORT, () => {
 
 function generateRandomString() {
   return Math.random().toString(36).slice(-6)
-}
+};
 
+function emailTaken (users, email) {
+  for (let id in users) {
+    console.log('users id email', users[id].email);
+      console.log('email', email);
+    if (users[id].email === email) {
+      
+      console.log('email already taken');
+      return true;
+    }
+  }
+  return false;
+};
 
