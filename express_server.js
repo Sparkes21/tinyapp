@@ -96,7 +96,8 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { user: null }
+  const user_id = req.cookies.user_id;
+  const templateVars = { user: users[user_id] }
   res.render("registration", templateVars);
 });
 
