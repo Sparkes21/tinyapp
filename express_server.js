@@ -33,13 +33,13 @@ const urlDatabase = {
 
 //Create
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] }
+  const templateVars = { user: users[req.cookies["user_id"]] }
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortLink = req.params.shortURL
-  const templateVars = { username: req.cookies["username"], shortURL: shortLink, longURL: urlDatabase[shortLink]};
+  const templateVars = { user: users[user_id], shortURL: shortLink, longURL: urlDatabase[shortLink]};
   res.render("urls_show", templateVars);
 });
 
@@ -48,7 +48,8 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 app.get("/urls", (req, res) => {
-  const templateVars = {  username: req.cookies["username"], urls: urlDatabase };
+  const user_id = req.cookies.user_id;
+  const templateVars = {  user: users[user_id], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -95,7 +96,7 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { username: null }
+  const templateVars = { user: null }
   res.render("registration", templateVars);
 });
 
