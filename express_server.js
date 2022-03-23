@@ -9,6 +9,7 @@ app.set("view engine", "ejs");
 
 // middleware
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 
 // Database
@@ -33,7 +34,7 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {  username: req.cookies["username"], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -76,7 +77,15 @@ app.post("/login", (req, res) => {
   console.log(username);
   res.cookie("username", username);
   res.redirect("/urls");
-})
+});
+
+app.post("/logout", (req, res) => {
+
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
+
+
 
 
 function generateRandomString() {
