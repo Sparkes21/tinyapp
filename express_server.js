@@ -50,6 +50,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = {  user: users[user_id], urls: urlDatabase };
+  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
@@ -91,7 +92,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -115,6 +116,12 @@ app.post("/register", (req, res) => {
     res.redirect("/urls");
   }
      
+});
+
+app.get("/login", (req, res) => {
+  const user_id = req.cookies.user_id;
+  const templateVars = { user: users[user_id] };
+  res.render("login", templateVars);
 });
 
 
