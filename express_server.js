@@ -33,7 +33,13 @@ const urlDatabase = {
 
 //Create
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] }
+  const user_id = req.cookies.user_id;
+  const user = users[user_id]
+  if(!user) {
+    res.redirect("/login");
+    return;
+  }
+  const templateVars = { user: user }
   res.render("urls_new", templateVars);
 });
 
@@ -59,6 +65,12 @@ app.get("/urls.json", (req, res) => {
 
 
 app.post("/urls", (req, res) => {
+  const user_id = req.cookies.user_id;
+  const user = users[user_id]
+  if(!user) {
+    res.send("Error you are not logged in");
+    return;
+  }
   const longUrl = req.body.longURL;
   const shortUrl = generateRandomString();
   urlDatabase[shortUrl] = longUrl;
