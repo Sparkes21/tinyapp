@@ -10,13 +10,18 @@
 </head>
 <body>
   <%- include('partials/_header') %>
-  <h3>Registration Page</h3>
+  <h3>Register New Account</h3>
   <form method="POST" action="/register">
-    <label for="email">Email:</label>
+    <div>
+      <label for="email">Email:</label>
     <input id="email" type="email" name="email"/>
-    <label for="password">Password:</label>
-    <input id="password" type="password" name="password"/>
-    <button type="submit" class="btn btn-outline-primary"> Register </button>
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input id="password" type="password" name="password"/>
+    </div>
+    <button type="submit" class="btn btn-primary"> Register </button>
   </form>
+  
 </body>
 </html>

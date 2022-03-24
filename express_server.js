@@ -17,12 +17,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "aaa",
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: "ddd"
   }
 };
 
@@ -50,7 +50,6 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = {  user: users[user_id], urls: urlDatabase };
-  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
@@ -84,17 +83,6 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/login", (req, res) => {
-  const username = req.body.username;
-  console.log(username);
-  res.cookie("username", username);
-  res.redirect("/urls");
-});
-
-app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
-  res.redirect("/urls");
-});
 
 app.get("/register", (req, res) => {
   const user_id = req.cookies.user_id;
@@ -103,15 +91,17 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  console.log('req.params:', req.params);
   const user_id = generateRandomString();
   if (req.body.email === '' || req.body.password === '') {
     res.status('400');
     res.send('Email or password is incorrect');
-  } else if (emailTaken(users, req.body.email)) {
+  } else if (findUserByEmail(users, req.body.email)) {
     res.status('400');
     res.send('Email already in use');
   } else {
-    users[user_id] = { user_id: user_id, email: req.body.email, password: req.body.password };
+    users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
+    console.log(users);
     res.cookie("user_id", user_id);
     res.redirect("/urls");
   }
@@ -124,6 +114,30 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
+app.post("/login", (req, res) => {
+  const user = findUserByEmail(users, req.body.email);
+  console.log('req.body:', req.body);
+  console.log('user', user);
+  if (!user) {
+    res.status('403');
+    res.send('Email not found');
+    return;
+  }
+  if (user.password === req.body.password) {
+   
+    res.cookie("user_id", user.id);
+    res.redirect("/urls");
+  } else {
+    res.status('403');
+    res.send('Incorrect password');
+  };
+  
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id");
+  res.redirect("/urls");
+});
 
 app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}!`);
@@ -133,16 +147,16 @@ function generateRandomString() {
   return Math.random().toString(36).slice(-6)
 };
 
-function emailTaken (users, email) {
+function findUserByEmail (users, email) {
   for (let id in users) {
     console.log('users id email', users[id].email);
       console.log('email', email);
     if (users[id].email === email) {
       
       console.log('email already taken');
-      return true;
+      return users[id];
     }
   }
-  return false;
+  return undefined;
 };
 
