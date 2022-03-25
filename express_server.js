@@ -70,7 +70,6 @@ app.get("/urls", (req, res) => {
   const user_id = req.session.user_id;
   const userURLS = urlsForUser(user_id);
   const templateVars = {  user: users[user_id], urls: userURLS };
-  console.log(users);
   res.render("urls_index", templateVars);
 });
 
@@ -114,7 +113,6 @@ app.post("/urls", (req, res) => {
   const longUrl = req.body.longURL;
   const shortUrl = generateRandomString();
   urlDatabase[shortUrl] = { longURL: longUrl, userID: user_id };
-  console.log("create short url: ", urlDatabase);
   res.redirect("/urls");         
 });
 
