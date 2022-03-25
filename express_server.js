@@ -1,16 +1,16 @@
+//Include Modules
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
-const helpers = require("./helpers")
+const helpers = require("./helpers");
+
+//Set our PORT
+const PORT = 8080; 
 
 
-const hash = bcrypt.hashSync(" ", 10);
-const compare = bcrypt.compareSync(" ", hash);
-
+//Set EJS as the view engine for app
 app.set("view engine", "ejs");
 
 
@@ -21,14 +21,14 @@ app.use(cookieSession({
   keys: ['any', 'string'],
 
   // Cookie Options
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  maxAge: 24 * 60 * 60 * 1000 
 }))
 
 app.use(bodyParser.urlencoded({extended: true}));
-//app.use(cookieParser());
 
 
-// Database
+
+// Databases
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
@@ -63,6 +63,7 @@ app.get('/', (req, res) => {
   
 });
 
+// page displaying urls associated with user
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     return res.status('401').send('Error, log in required to view this page <a href="/login">login</a>');
@@ -73,6 +74,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//takes you to page to create new shortURL
 app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
   const user = users[user_id]
@@ -83,7 +85,7 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { user: user }
   res.render("urls_new", templateVars);
 });
-
+//page associated with specific shortURL and has the ability to change it 
 app.get("/urls/:shortURL", (req, res) => {
   if (!req.session.user_id) {
     return res.status('401').send('Error, log in required to view this page <a href="/login">login</a>');
@@ -98,11 +100,13 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// takes you to page associated with specific shortURL
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL
   res.redirect(longURL);
 });
 
+// lets you create short urls for a longURL and associates it to your id
 app.post("/urls", (req, res) => {
   const user_id = req.session.user_id;
   const user = users[user_id]
@@ -117,14 +121,7 @@ app.post("/urls", (req, res) => {
 });
 
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-
-
-
-// deletes a url 
+// deletes a url if logged in and url exists attached to your username, wont let you view it if not logged in 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const user_id = req.session.user_id;
   const shortUrl = req.params.shortURL;
@@ -163,20 +160,20 @@ app.post("/urls/:shortURL/edit", (req, res) => {
  
 });
 
-//login page and login request
+//login page 
 app.get("/login", (req, res) => {
   const user_id = req.session.user_id;
   const templateVars = { user: users[user_id] };
   res.render("login", templateVars);
 });
 
-// registration page and register request
+// registration page 
 app.get("/register", (req, res) => {
   const user_id = req.session.user_id;
   const templateVars = { user: users[user_id] }
   res.render("registration", templateVars);
 });
-
+//checks if username and password exist and then logs you in if they both are correct, otherwise sends error
 app.post("/login", (req, res) => {
   const user = helpers.findUserByEmail(users, req.body.email);
   if (!user) {
@@ -194,12 +191,12 @@ app.post("/login", (req, res) => {
   
 });
 
-
+//lets you register as long as email is not taken 
 app.post("/register", (req, res) => {
   const user_id = generateRandomString();
   if (req.body.email === '' || req.body.password === '') {
     res.status('400');
-    res.send('Email or password is incorrect');
+    res.send('Email or password is not valid');
   } else if (helpers.findUserByEmail(users, req.body.email)) {
     res.status('400');
     res.send('Email already in use');
@@ -210,16 +207,14 @@ app.post("/register", (req, res) => {
   }
      
 });
-
+// logout and clear cookies
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}!`);
-});
 
+//function to generate strings of 6 characters to use as the shortURL
 function generateRandomString() {
   return Math.random().toString(36).slice(-6)
 };
@@ -234,3 +229,7 @@ function urlsForUser (id) {
   }
   return outputObject;
 }
+
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}!`);
+});
