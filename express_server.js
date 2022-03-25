@@ -37,7 +37,26 @@ const urlDatabase = {
   }
 };
 
-//Create
+//Requests
+app.get('/', (req, res) => {
+  if (!req.cookies.user_id) {
+    res.redirect("/login");
+  } else {
+    res.redirect("/urls");
+  }
+  
+});
+
+app.get("/urls", (req, res) => {
+  if (!req.cookies.user_id) {
+    return res.status('401').send('Error, log in required to view this page <a href="/login">login</a>');
+  };
+  const user_id = req.cookies.user_id;
+  const userURLS = urlsForUser(user_id);
+  const templateVars = {  user: users[user_id], urls: userURLS };
+  res.render("urls_index", templateVars);
+});
+
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies.user_id;
   const user = users[user_id]
@@ -50,11 +69,15 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (!req.cookies.user_id) {
+    return res.status('401').send('Error, log in required to view this page <a href="/login">login</a>');
+  };
   const user_id = req.cookies.user_id;
   const shortUrl = req.params.shortURL
-  console.log("shortUrl: ", shortUrl);
-  console.log("urldatabase: ", urlDatabase);
-  console.log(urlDatabase[shortUrl]);
+  const userURLS = urlsForUser(user_id);
+   if (!Object.keys(userURLS).includes(shortUrl)) {
+     return res.status('401').send('Error, this shortUrl does not belong to you');
+   };
   const templateVars = { user: users[user_id], shortURL: shortUrl, longURL: urlDatabase[shortUrl].longURL};
   res.render("urls_show", templateVars);
 });
@@ -64,11 +87,6 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-app.get("/urls", (req, res) => {
-  const user_id = req.cookies.user_id;
-  const templateVars = {  user: users[user_id], urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -85,20 +103,45 @@ app.post("/urls", (req, res) => {
   const longUrl = req.body.longURL;
   const shortUrl = generateRandomString();
   urlDatabase[shortUrl] = { longURL: longUrl, userID: user_id };
+  console.log("create short url: ", urlDatabase);
   res.redirect("/urls");         
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const user_id = req.cookies.user_id;
   const shortUrl = req.params.shortURL;
-  delete urlDatabase[shortUrl]
-  res.redirect("/urls");
+  if (!urlDatabase[shortUrl]) {
+    return res.status('404').send('shortUrl does not exist');
+  };
+  
+  if (urlDatabase[shortUrl].userID === user_id) {
+    delete urlDatabase[shortUrl];
+    return res.redirect("/urls");
+  };
+
+  if (!user_id) {
+    return res.status('401').send('Please login to view shortURl <a href="/login">login</a>');
+  }
+  
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
+  const user_id = req.cookies.user_id;
   const shortUrl = req.params.shortURL;
   const newurl = req.body.newurl;
-  urlDatabase[shortUrl]['longURL'] = newurl;
-  res.redirect(`/urls`);
+  if (!urlDatabase[shortUrl]) {
+    return res.status('404').send('shortUrl does not exist');
+  }
+  if (!user_id) {
+
+    return res.status('401').send('Please login to view shortURl <a href="/login">login</a>');
+  }
+
+   if (urlDatabase[shortUrl].userID === user_id) {
+    urlDatabase[shortUrl]['longURL'] = newurl;
+    return res.redirect(`/urls`);
+  }
+ 
 });
 
 
@@ -178,3 +221,13 @@ function findUserByEmail (users, email) {
   return undefined;
 };
 
+
+function urlsForUser (id) {
+  let outputObject = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      outputObject[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return outputObject;
+}
