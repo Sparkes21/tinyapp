@@ -53,7 +53,7 @@ const urlDatabase = {
   }
 };
 
-//Requests
+// get request for main page that redirects to login or urls if already logged in
 app.get('/', (req, res) => {
   if (!req.session.user_id) {
     res.redirect("/login");
