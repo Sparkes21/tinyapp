@@ -3,8 +3,14 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
+
+
+const hash = bcrypt.hashSync(" ", 10);
+const compare = bcrypt.compareSync(" ", hash);
 
 app.set("view engine", "ejs");
+
 
 
 // middleware
@@ -54,6 +60,7 @@ app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   const userURLS = urlsForUser(user_id);
   const templateVars = {  user: users[user_id], urls: userURLS };
+  console.log(users);
   res.render("urls_index", templateVars);
 });
 
@@ -87,12 +94,6 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-
 app.post("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   const user = users[user_id]
@@ -107,13 +108,22 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls");         
 });
 
+
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
+
+
+
+// deletes a url 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const user_id = req.cookies.user_id;
   const shortUrl = req.params.shortURL;
   if (!urlDatabase[shortUrl]) {
     return res.status('404').send('shortUrl does not exist');
   };
-  
+
   if (urlDatabase[shortUrl].userID === user_id) {
     delete urlDatabase[shortUrl];
     return res.redirect("/urls");
@@ -125,6 +135,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   
 });
 
+// edit url function to change shortUrl to a new longUrl 
 app.post("/urls/:shortURL/edit", (req, res) => {
   const user_id = req.cookies.user_id;
   const shortUrl = req.params.shortURL;
@@ -144,12 +155,37 @@ app.post("/urls/:shortURL/edit", (req, res) => {
  
 });
 
+//login page and login request
+app.get("/login", (req, res) => {
+  const user_id = req.cookies.user_id;
+  const templateVars = { user: users[user_id] };
+  res.render("login", templateVars);
+});
 
+// registration page and register request
 app.get("/register", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = { user: users[user_id] }
   res.render("registration", templateVars);
 });
+
+app.post("/login", (req, res) => {
+  const user = findUserByEmail(users, req.body.email);
+  if (!user) {
+    res.status('403');
+    res.send('Email not found');
+    return;
+  }
+  if (bcrypt.compareSync(req.body.password , user.password)) {
+    res.cookie("user_id", user.id);
+    res.redirect("/urls");
+  } else {
+    res.status('403');
+    res.send('Incorrect password');
+  };
+  
+});
+
 
 app.post("/register", (req, res) => {
   console.log('req.params:', req.params);
@@ -161,38 +197,11 @@ app.post("/register", (req, res) => {
     res.status('400');
     res.send('Email already in use');
   } else {
-    users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
-    console.log(users);
+    users[user_id] = { id: user_id, email: req.body.email, password: bcrypt.hashSync(req.body.password) };
     res.cookie("user_id", user_id);
     res.redirect("/urls");
   }
      
-});
-
-app.get("/login", (req, res) => {
-  const user_id = req.cookies.user_id;
-  const templateVars = { user: users[user_id] };
-  res.render("login", templateVars);
-});
-
-app.post("/login", (req, res) => {
-  const user = findUserByEmail(users, req.body.email);
-  console.log('req.body:', req.body);
-  console.log('user', user);
-  if (!user) {
-    res.status('403');
-    res.send('Email not found');
-    return;
-  }
-  if (user.password === req.body.password) {
-   
-    res.cookie("user_id", user.id);
-    res.redirect("/urls");
-  } else {
-    res.status('403');
-    res.send('Incorrect password');
-  };
-  
 });
 
 app.post("/logout", (req, res) => {
@@ -210,11 +219,9 @@ function generateRandomString() {
 
 function findUserByEmail (users, email) {
   for (let id in users) {
-    console.log('users id email', users[id].email);
-      console.log('email', email);
     if (users[id].email === email) {
       
-      console.log('email already taken');
+      // console.log('email already taken');
       return users[id];
     }
   }
