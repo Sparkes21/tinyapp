@@ -7,9 +7,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 
 
-!["screenshot of URLs page"](https://github.com/Sparkes21/tinyapp/blob/main/docs/urls-page.png)
+!["screenshot of URLs page"](https://github.com/Sparkes21/tinyapp/blob/main/docs/urls-page%20copy.png)
 
-!["screenshot of Registration page"](https://github.com/Sparkes21/tinyapp/blob/main/docs/register-page.png)
+!["screenshot of Registration page"](https://github.com/Sparkes21/tinyapp/blob/main/docs/register-page%20copy.png)
 
 
 ## Dependencies
